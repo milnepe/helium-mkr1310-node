@@ -11,15 +11,18 @@
     
 */
 
-#include <MKRWAN.h>
+// Arduino MKRWAN https://github.com/arduino-libraries/MKRWAN
+#include <MKRWAN.h>  // Not MKRWAN_v2
+// Forced-BME280 https://github.com/JVKran/Forced-BME280
 #include <forcedClimate.h>
+// Arduino Low Power https://github.com/arduino-libraries/ArduinoLowPower
 #include "ArduinoLowPower.h"
 #include "arduino_secrets.h"
 
 #define DEBUG
 
-#define SEND_INTERVAL 60 // Send interval in mins
-#define BUFFER_SIZE  10 // Data buffer size in bytes
+#define SEND_INTERVAL 1  // Send interval in mins
+#define BUFFER_SIZE 10   // Data buffer size in bytes
 
 
 #define WET 106
@@ -30,9 +33,9 @@ String appEui = SECRET_APP_EUI;
 String appKey = SECRET_APP_KEY;
 
 
-int moisturePin = A0; // Moisture sensor pin
+int moisturePin = A0;  // Moisture sensor pin
 
-LoRaModem modem;
+//LoRaModem modem;
 
 ForcedClimate climateSensor = ForcedClimate(Wire, 0x76);
 
@@ -41,29 +44,30 @@ int16_t counter = 0;
 void setup() {
 #ifdef DEBUG
   Serial.begin(115200);
-  while (!Serial);
+  while (!Serial)
+    ;
   Serial.println("Begin debugging...");
 #endif
 
   climateSensor.begin();
 
   // change this to your regional band (eg. US915, AS923, ...)
-  if (!modem.begin(EU868)) {
-    while (1) {}
-  };
+  // if (!modem.begin(EU868)) {
+  //   while (1) {}
+  // };
 #ifdef DEBUG
-  Serial.print("Firmware version: ");
-  Serial.println(modem.version());
-  Serial.print("Device EUI: ");
-  Serial.println(modem.deviceEUI());
+  // Serial.print("Firmware version: ");
+  // Serial.println(modem.version());
+  // Serial.print("Device EUI: ");
+  // Serial.println(modem.deviceEUI());
 #endif
 
   delay(5000);
 
-  int connected = modem.joinOTAA(appEui, appKey);
-  if (!connected) {
-    while (1) {}
-  }
+  // int connected = modem.joinOTAA(appEui, appKey);
+  // if (!connected) {
+  //   while (1) {}
+  // }
 
   /*
     DataRate  Modulation  SF  BW  bit/s
@@ -75,17 +79,17 @@ void setup() {
     5   LoRa  7   125   5'470
     6   LoRa  7   250   11'000
   */
-  modem.dataRate(5);
+  // modem.dataRate(5);
 
   // Enable Adjustable Data Rate
-  modem.setADR(true);
+  // modem.setADR(true);
 }
 
 void loop() {
   delay(5000);
 
   // Buffer sensor readings
-  uint8_t buffer[BUFFER_SIZE] = {0};  // init to zero!
+  uint8_t buffer[BUFFER_SIZE] = { 0 };  // init to zero!
 
   // Read moisture sensor
   int16_t moisture_raw = analogRead(moisturePin);
@@ -93,7 +97,7 @@ void loop() {
     moisture_raw = DRY;
   } else if (moisture_raw < WET) {
     moisture_raw = WET;
-  }  
+  }
   int16_t moisture_pc = map(moisture_raw, DRY, WET, 0, 100);
   int_to_byte_array(moisture_pc, &buffer[0]);
   delay(50);
@@ -132,9 +136,9 @@ void loop() {
 #endif
 
   int err = 0;
-  modem.beginPacket();
-  modem.write(buffer, BUFFER_SIZE);  // write bytes
-  err = modem.endPacket(true);
+  // modem.beginPacket();
+  // modem.write(buffer, BUFFER_SIZE);  // write bytes
+  // err = modem.endPacket(true);
 #ifdef DEBUG
   if (err > 0) {
     Serial.println("Message sent correctly!");
@@ -142,7 +146,8 @@ void loop() {
     Serial.println("Error sending message");
   }
 #endif
-  LowPower.sleep(SEND_INTERVAL * 60 * 1000);
+  delay(5000);
+  // LowPower.sleep(SEND_INTERVAL * 60 * 1000);
 }
 
 // Convert 16-bit int to 8-bit array (Big endian)
